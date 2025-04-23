@@ -1,6 +1,6 @@
 /******************************************************************
  *
- *   ADD YOUR NAME / SECTION NUMBER HERE
+ *   Nathan Hogg / 002
  *
  *   This java file contains the problem solutions of canFinish and
  *   numGroups methods.
@@ -26,7 +26,7 @@ class ProblemSolutions {
      * in prerequisites. You want to avoid this embarrassment by making sure you define
      * a curriculum and exam schedule that can be completed.
      *
-     * You goal is to ensure that any student pursuing the certificate of 'master
+     * Your goal is to ensure that any student pursuing the certificate of 'master
      * programmer', can complete 'n' certification exams, each being specific to a
      * topic. Some exams have prerequisites of needing to take and pass earlier
      * certificate exams. You do not want to force any order of taking the exams, but
@@ -67,23 +67,67 @@ class ProblemSolutions {
      *     should also have completed the certification of exam
      *     1. So, it is impossible (it is a cycle graph).
      *
+     * To do this, we can use a depth-first search. We
+     * start by creating a directed graph from the
+     * prerequisites. We then use a depth-first search to
+     * traverse the graph and check if there is a cycle.
+     * If there is a cycle, we will return false. If there
+     * is no cycle, we return true.
+     *
      * @param numExams          - number of exams, which will produce a graph of n nodes
      * @param prerequisites     - 2-dim array of directed edges.
      * @return boolean          - True if all exams can be taken, else false.
      */
 
-    public boolean canFinish(int numExams, 
-                             int[][] prerequisites) {
-      
+    public boolean canFinish(int numExams, int[][] prerequisites) {
+
         int numNodes = numExams;  // # of nodes in graph
 
         // Build directed graph's adjacency list
-        ArrayList<Integer>[] adj = getAdjList(numExams, 
-                                        prerequisites); 
+        ArrayList<Integer>[] adj = getAdjList(numExams, prerequisites);
 
-        // ADD YOUR CODE HERE - ADD YOUR NAME / SECTION AT TOP OF FILE
+        int[] states = new int[numNodes];
+
+        for (int i = 0; i < numNodes; i++) {
+            if (states[i] == 0) {
+                if (checkCycle(i, adj, states)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+
+    }
+
+    /**
+     * Method checkCycle
+     *
+     * This method checks if there is a cycle in the directed graph.
+     * * To do this, we use a depth-first search. We
+     * start by creating a directed graph from the
+     * prerequisites. We then use a depth-first search to
+     * traverse the graph and check if there is a cycle.
+     * * If there is a cycle, we return true. If there
+     * is no cycle, we return false.
+     */
+    private boolean checkCycle(int node, ArrayList<Integer>[] adj, int[] states) {
+        states[node] = 1;
+
+        for (int neighbor : adj[node]) {
+            if (states[neighbor] == 1) {
+                return true;
+            }
+            if (states[neighbor] == 0) {
+                if (checkCycle(neighbor, adj, states)) {
+                    return true;
+                }
+            }
+        }
+
+        states[node] = 2;
+
         return false;
-
     }
 
 
@@ -101,8 +145,8 @@ class ProblemSolutions {
     private ArrayList<Integer>[] getAdjList(
             int numNodes, int[][] edges) {
 
-        ArrayList<Integer>[] adj 
-                    = new ArrayList[numNodes];      // Create an array of ArrayList ADT
+        ArrayList<Integer>[] adj
+                = new ArrayList[numNodes];      // Create an array of ArrayList ADT
 
         for (int node = 0; node < numNodes; node++){
             adj[node] = new ArrayList<Integer>();   // Allocate empty ArrayList per node
@@ -190,9 +234,67 @@ class ProblemSolutions {
             }
         }
 
-        // YOUR CODE GOES HERE - you can add helper methods, you do not need
-        // to put all code in this method.
-        return -1;
+        /*
+         * This method returns the number of groups found in the graph.
+         *
+         * To do this, we loop over each node in the graph, checking if
+         * it has been visited. If it hasn't we call exploreConnection to
+         * explore all nodes connected to the starting node. This method
+         * explores all nodes connected to the starting node, adding
+         * them to visited to signal that a "group" has been found.
+         */
+        Set<Integer> visited = new HashSet<>();
+
+        int groupCount = 0;
+
+        for (int node = 0; node < numNodes; node++) {
+            if (!visited.contains(node)) {
+                exploreConnection(node, graph, visited);
+                groupCount++;
+            }
+        }
+
+        return groupCount;
     }
 
+    /***
+     * Helper method to perform a depth-first search of the graph.
+     *
+     * This method explores all nodes connected to the starting node, adding
+     * them to visited to signal that a "group" has been found.
+     * This ensures we don't double count group members.
+     *
+     * To do this, we use a stack to keep track of the nodes we need
+     * to visit. We start by pushing the "start" node on the stack. This represents
+     * the current node we are exploring. We then enter a loop that continues
+     * until all nodes have been visited. On each iteration, we pop the top node and
+     * check if it has been visited. If it hasn't we add it to the visited set.
+     * We then iterate over all the neighbors of the current node and push them onto
+     * the stack if they haven't been visited yet. This ensures that we explore all
+     * nodes connected to the starting node.
+     * This method is called recursively for each node in the graph until all nodes
+     * have been visited.
+     *
+     * @param start
+     * @param graph
+     * @param visited
+     */
+    void exploreConnection(int start, Map<Integer, List<Integer>> graph, Set<Integer> visited) {
+        Stack<Integer> stack = new Stack<>();
+        stack.push(start);
+
+        while (!stack.isEmpty()) {
+            int current = stack.pop();
+
+            if (!visited.contains(current)) {
+                visited.add(current);
+
+                for (int neighbor : graph.getOrDefault(current, new ArrayList<>())) {
+                    if (!visited.contains(neighbor)) {
+                        stack.push(neighbor);
+                    }
+                }
+            }
+        }
+    }
 }
